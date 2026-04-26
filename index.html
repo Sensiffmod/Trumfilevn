@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sensi.io - Premium Mod</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;700;900&display=swap');
+        :root { --main-orange: #ff8c00; --bg-dark: #0a0a0c; }
+        body { background: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        
+        /* Hiệu ứng bụi bay chậm */
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; }
+        
+        .glass { background: rgba(20, 20, 25, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; z-index: 1000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.active { left: 0; }
+        .popup { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .popup.active { display: flex; }
+
+        /* Chữ chạy ngang */
+        .marquee { background: rgba(255, 140, 0, 0.1); padding: 8px 0; border-bottom: 1px solid rgba(255, 140, 0, 0.2); }
+        .marquee-text { display: inline-block; animation: scroll 15s linear infinite; font-weight: 900; color: var(--main-orange); font-size: 12px; }
+        @keyframes scroll { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+        .btn-action { background: linear-gradient(135deg, #ff8c00, #ff4500); transition: 0.3s; }
+        .btn-action:active { transform: scale(0.95); }
+    </style>
+</head>
+<body onload="initSystem()">
+    <div id="particles-js"></div>
+
+    <div id="sidebar" class="sidebar glass border-r border-orange-500/20">
+        <div class="p-8 border-b border-white/5 text-center">
+            <h2 class="font-cyber text-orange-500 text-xl italic">SENSI.IO</h2>
+        </div>
+        <div class="p-4 space-y-2">
+            <div onclick="openPop('pop-qr')" class="flex items-center gap-4 p-4 hover:bg-orange-500/10 rounded-2xl cursor-pointer"><i class="fas fa-qrcode text-orange-500"></i> <b>Nạp Tiền QR</b></div>
+            <div onclick="openPop('pop-chart')" class="flex items-center gap-4 p-4 hover:bg-orange-500/10 rounded-2xl cursor-pointer"><i class="fas fa-chart-line text-blue-400"></i> <b>Dòng Tiền</b></div>
+            <div onclick="alert('Chức năng đang bảo trì!')" class="flex items-center gap-4 p-4 hover:bg-orange-500/10 rounded-2xl cursor-pointer"><i class="fas fa-credit-card text-yellow-500"></i> <b>Nạp Thẻ</b></div>
+            <div onclick="window.open('https://zalo.me/0397208110')" class="flex items-center gap-4 p-4 hover:bg-red-500/10 rounded-2xl cursor-pointer text-red-400"><i class="fas fa-user-shield"></i> <b>Liên hệ Admin</b></div>
+        </div>
+    </div>
+
+    <header class="fixed top-0 w-full z-50 glass border-b border-white/5 p-4 flex justify-between items-center">
+        <i onclick="toggleMenu()" class="fas fa-bars text-2xl text-orange-500 cursor-pointer"></i>
+        <h1 class="font-cyber text-orange-500 text-lg italic">Sensi.io</h1>
+        <div class="bg-black/50 px-4 py-1.5 rounded-full border border-orange-500/30">
+            <span id="balance" class="text-xs font-black text-orange-400">0đ</span>
+        </div>
+    </header>
+
+    <main class="pt-24 pb-20 px-4 max-w-md mx-auto space-y-6">
+        <div class="marquee rounded-xl overflow-hidden">
+            <div class="marquee-text font-cyber uppercase tracking-widest">Thời gian hoạt động hệ thống: 06h - 24h hàng ngày ★ Uy tín hàng đầu Việt Nam ★</div>
+        </div>
+
+        <button onclick="alert('Link tiếp thị: https://sensi.io/ref/huy')" class="w-full btn-action py-4 rounded-2xl font-black text-sm shadow-lg shadow-orange-500/20">
+            TIẾP THỊ LIÊN KẾT <i class="fas fa-share-nodes ml-2"></i>
+        </button>
+
+        <div class="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5">
+            <button onclick="showTab('free')" id="btn-free" class="flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-orange-500 text-white">FREE</button>
+            <button onclick="showTab('ios')" id="btn-ios" class="flex-1 py-3 rounded-xl text-[10px] font-black transition-all opacity-50">IOS VIP</button>
+            <button onclick="showTab('android')" id="btn-android" class="flex-1 py-3 rounded-xl text-[10px] font-black transition-all opacity-50">ANDROID</button>
+        </div>
+
+        <div id="product-container" class="space-y-4"></div>
+    </main>
+
+    <footer class="p-8 text-center border-t border-white/5 opacity-50">
+        <p class="text-[10px] font-black tracking-widest uppercase">Bản quyền © Sensi.io Shop</p>
+    </footer>
+
+    <div id="pop-qr" class="popup">
+        <div class="glass w-full max-w-xs p-6 rounded-[2.5rem] text-center relative border border-orange-500/20">
+            <button onclick="closePop('pop-qr')" class="absolute top-6 right-6 text-gray-500"><i class="fas fa-times-circle text-xl"></i></button>
+            <h3 class="font-cyber text-orange-500 mb-4 italic">NẠP TIỀN AUTO</h3>
+            <img src="https://img.vietqr.io/image/MB-0397208110-compact2.jpg?amount=2000&addInfo=NAP%20TIEN%20HUY" class="w-full rounded-2xl border-4 border-white/5 mb-4">
+            <p class="text-[10px] text-gray-400 leading-relaxed">Nạp tối thiểu <b>2.000đ</b>. Nếu sau 1-3 phút tiền chưa vào, vui lòng liên hệ Admin qua Zalo.</p>
+            <button onclick="window.open('https://zalo.me/0397208110')" class="mt-4 w-full bg-blue-600/20 text-blue-400 py-3 rounded-xl font-bold text-xs border border-blue-500/30">Zalo Admin: 0397208110</button>
+        </div>
+    </div>
+
+    <div id="pop-chart" class="popup">
+        <div class="glass w-full max-w-sm p-6 rounded-[2rem]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-xs uppercase tracking-widest text-orange-500">Dòng tiền trong tháng</h3>
+                <i onclick="closePop('pop-chart')" class="fas fa-times cursor-pointer"></i>
+            </div>
+            <canvas id="moneyChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        const products = {
+            free: [
+                { name: "Netplus V10", price: "0đ", link: "https://link4m.com/AxI17" },
+                { name: "Hopper V8", price: "0đ", link: "https://link4m.com/AxI17" },
+                { name: "ItachiPing V10", price: "0đ", link: "https://link4m.com/AxI17" }
+            ],
+            ios: [
+                { name: "Aimbody", price: "100.000đ" }, { name: "Aimlock", price: "150.000đ" },
+                { name: "Aimkill", price: "200.000đ" }, { name: "Fluorite (1 Tuần)", price: "100.000đ" },
+                { name: "Fluorite (1 Tháng)", price: "300.000đ" }, { name: "Nhẹ Tâm V1", price: "50.000đ" },
+                { name: "Nhẹ Tâm V2", price: "70.000đ" }, { name: "Nhẹ Tâm V3", price: "100.000đ" }
+            ],
+            android: [
+                { name: "Aimlock V1", price: "50.000đ" }, { name: "Aimlock V2", price: "100.000đ" },
+                { name: "Aimlock V3", price: "150.000đ" }, { name: "Aimlock V4", price: "200.000đ" },
+                { name: "Aimbody", price: "250.000đ" }
+            ]
+        };
+
+        let currentTab = 'free';
+
+        function initSystem() {
+            renderProducts();
+            initParticles();
+            initChart();
+            
+            // Nhảy số "Đang dùng" mỗi 5 giây
+            setInterval(() => {
+                const liveElements = document.querySelectorAll('.live-count');
+                liveElements.forEach(el => {
+                    el.innerText = Math.floor(Math.random() * 900) + 100;
+                });
+            }, 5000);
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('product-container');
+            container.innerHTML = "";
+            
+            products[currentTab].forEach((p, index) => {
+                const stock = Math.floor(Math.random() * 10000) + 5000;
+                const sold = Math.floor(Math.random() * 2000) + 1000;
+                const live = Math.floor(Math.random() * 900) + 100;
+                
+                container.innerHTML += `
+                <div class="glass p-5 rounded-[2rem] border-l-4 border-orange-500 shadow-xl">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-black text-sm uppercase text-gray-200">${p.name}</h4>
+                            <p class="text-orange-500 font-cyber text-[10px] mt-1">${p.price}</p>
+                        </div>
+                        <button onclick="${p.link ? `window.open('${p.link}')` : "alert('Bạn không đủ số dư!')"}" class="btn-action px-5 py-2 rounded-xl text-[9px] font-black uppercase">
+                            ${currentTab === 'free' ? 'Lấy Key 48h' : 'Mua Ngay'}
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center border-t border-white/5 pt-4">
+                        <div class="bg-black/20 py-2 rounded-xl">
+                            <p class="text-[7px] text-gray-500 font-bold uppercase mb-0.5">Hàng còn</p>
+                            <p class="text-[10px] text-orange-400 font-black">${stock.toLocaleString()}</p>
+                        </div>
+                        <div class="bg-black/20 py-2 rounded-xl">
+                            <p class="text-[7px] text-gray-500 font-bold uppercase mb-0.5">Đã bán</p>
+                            <p class="text-[10px] text-blue-400 font-black">${sold.toLocaleString()}</p>
+                        </div>
+                        <div class="bg-black/20 py-2 rounded-xl">
+                            <p class="text-[7px] text-gray-500 font-bold uppercase mb-0.5">Đang dùng</p>
+                            <p class="text-[10px] text-green-400 font-black live-count">${live}</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function showTab(tab) {
+            currentTab = tab;
+            ['free', 'ios', 'android'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                if(t === tab) {
+                    btn.classList.remove('opacity-50');
+                    btn.classList.add('bg-orange-500', 'text-white');
+                } else {
+                    btn.classList.add('opacity-50');
+                    btn.classList.remove('bg-orange-500', 'text-white');
+                }
+            });
+            renderProducts();
+        }
+
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+        function openPop(id) { document.getElementById(id).classList.add('active'); toggleMenu(); }
+        function closePop(id) { document.getElementById(id).classList.remove('active'); }
+
+        function initParticles() {
+            particlesJS("particles-js", {
+                "particles": {
+                    "number": { "value": 40 },
+                    "color": { "value": "#ffffff" },
+                    "opacity": { "value": 0.2 },
+                    "size": { "value": 2 },
+                    "move": { "speed": 0.5, "direction": "bottom" }
+                },
+                "interactivity": { "events": { "onhover": { "enable": false } } }
+            });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('moneyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['W1', 'W2', 'W3', 'W4'],
+                    datasets: [{
+                        data: [200000, 450000, 300000, 600000],
+                        borderColor: '#ff8c00',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)'
+                    }]
+                },
+                options: { 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { display: false }, x: { grid: { display: false } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+ 
